@@ -1,8 +1,6 @@
-# Upstream Update Commands
+# One-time setup (if upstream remote doesn't exist)
+git remote add upstream https://github.com/folke/sidekick.nvim.git
 
-## Manual steps to sync fork with upstream
-
-```bash
 # Step 1: Fetch upstream changes
 git fetch upstream
 
@@ -18,17 +16,9 @@ git push origin submit-fix --force-with-lease
 
 # Step 4: View your custom commits
 git log --oneline main..submit-fix
-```
 
-## One-time setup (if upstream remote doesn't exist)
+# --- Check current status ---
 
-```bash
-git remote add upstream https://github.com/folke/sidekick.nvim.git
-```
-
-## Check current status
-
-```bash
 # View all remotes
 git remote -v
 
@@ -37,19 +27,13 @@ git branch
 
 # Check for uncommitted changes
 git status
-```
 
-## If rebase has conflicts
+# --- If rebase has conflicts ---
 
-```bash
 # After resolving conflicts in your editor:
 git add <conflicted-files>
 git rebase --continue
 git push origin submit-fix --force-with-lease
-```
 
-## To abort a rebase
-
-```bash
+# To abort a rebase
 git rebase --abort
-```
