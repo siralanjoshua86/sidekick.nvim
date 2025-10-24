@@ -192,9 +192,15 @@ function M.send(opts)
     Util.exit_visual_mode()
     vim.schedule(function()
       msg = state.tool:format(text)
-      state.session:send(msg .. "\n")
+      -- Don't append \n if we're going to submit separately
+      local send_msg = opts.submit and msg or (msg .. "\n")
+      state.session:send(send_msg)
+      Util.debug("send() opts.submit = " .. tostring(opts.submit) .. ", msg length = " .. #send_msg)
       if opts.submit then
-        state.session:submit()
+        vim.defer_fn(function()
+          Util.debug("calling state.session:submit()")
+          state.session:submit()
+        end, 100)
       end
     end)
   end, {

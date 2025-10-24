@@ -216,7 +216,9 @@ function M.curl(url, opts)
 
   table.insert(cmd, url)
 
+  M.debug("curl command: " .. table.concat(cmd, " "))
   local ret = M.exec(cmd)
+  M.debug("curl result: " .. tostring(ret and table.concat(ret, "\n") or "nil"))
   return ret and table.concat(ret, "\n") or nil
 end
 

@@ -319,15 +319,20 @@ function M:on_ready()
   self.timer:start(0, SEND_DELAY, function()
     local next = table.remove(self.send_queue, 1) ---@type string?
     if next then
-      next = next:gsub("\r\n", "\n") -- normalize line endings
       vim.schedule(function()
         if self:is_running() then
-          -- Use nvim_put to send input to the terminal
-          -- instead of nvim_chan_send to better simulate user input
-          -- vim.api.nvim_chan_send(self.job, next)
-          vim.api.nvim_buf_call(self.buf, function()
-            vim.api.nvim_put(vim.split(next, "\n", { plain = true }), "c", false, true)
-          end)
+          -- Check if this is just the submit key (Enter)
+          if next == "\r" then
+            require("sidekick.util").debug("terminal:on_ready() sending Enter key")
+            vim.api.nvim_chan_send(self.job, next)
+          else
+            next = next:gsub("\r\n", "\n") -- normalize line endings
+            require("sidekick.util").debug("terminal:on_ready() sending " .. #next .. " chars via nvim_chan_send")
+            -- Use bracketed paste mode to prevent terminal from interpreting special sequences
+            vim.api.nvim_chan_send(self.job, "\x1b[200~") -- Start bracketed paste
+            vim.api.nvim_chan_send(self.job, next)
+            vim.api.nvim_chan_send(self.job, "\x1b[201~") -- End bracketed paste
+          end
           if self:is_focused() then
             vim.cmd.startinsert()
           end
@@ -488,10 +493,14 @@ function M:send(input)
 end
 
 function M:submit()
+  require("sidekick.util").debug("terminal backend submit() called")
+  self:show()
   if not self:is_running() then
+    require("sidekick.util").warn("submit() called but terminal not running")
     return
   end
-  self:send("\r") -- Updated to use the send method
+  -- Add the Enter key to the send queue so it comes after any pending text
+  table.insert(self.send_queue, "\r")
 end
 
 ---@param buf? integer

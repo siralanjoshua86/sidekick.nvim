@@ -168,12 +168,14 @@ end
 function M:send(text)
   local function send()
     local buffer = "sidekick-" .. self.tmux_pane_id
+    require("sidekick.util").debug("tmux:send() pasting " .. #text .. " chars to pane " .. self.tmux_pane_id)
     Util.exec({ "tmux", "load-buffer", "-b", buffer, "-" }, { stdin = text })
     Util.exec({ "tmux", "paste-buffer", "-b", buffer, "-d", "-r", "-t", self.tmux_pane_id })
   end
 
   if self.tool.mux_focus then
     -- Send focus-in event first (some TUI apps like qwen ignore input when unfocused)
+    require("sidekick.util").debug("tmux:send() sending focus-in event first (mux_focus=true)")
     Util.exec({ "tmux", "send-keys", "-t", self.tmux_pane_id, "Escape", "[", "I" })
     vim.defer_fn(send, 50) -- slight delay to ensure focus event is processed first
   else
@@ -183,6 +185,7 @@ end
 
 ---Send text to a tmux pane
 function M:submit()
+  require("sidekick.util").debug("tmux:submit() sending Enter key to pane " .. self.tmux_pane_id)
   Util.exec({ "tmux", "send-keys", "-t", self.tmux_pane_id, "Enter" })
 end
 

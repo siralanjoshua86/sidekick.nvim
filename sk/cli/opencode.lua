@@ -59,17 +59,27 @@ function M:is_running()
 end
 
 function M:send(text)
-  require("sidekick.util").curl(self.base_url .. "/tui/append-prompt", {
+  local Util = require("sidekick.util")
+  Util.debug("opencode backend send() called with " .. #text .. " chars - using HTTP API")
+  local url = self.base_url .. "/tui/append-prompt"
+  Util.debug("opencode backend send() URL: " .. url)
+  local result = Util.curl(url, {
     method = "POST",
     data = { text = text },
   })
+  Util.debug("opencode backend send() result: " .. tostring(result))
 end
 
 function M:submit()
-  require("sidekick.util").curl(self.base_url .. "/tui/submit-prompt", {
+  local Util = require("sidekick.util")
+  Util.debug("opencode backend submit() called - using HTTP API")
+  local url = self.base_url .. "/tui/submit-prompt"
+  Util.debug("opencode backend submit() URL: " .. url)
+  local result = Util.curl(url, {
     method = "POST",
     data = {},
   })
+  Util.debug("opencode backend submit() result: " .. tostring(result))
 end
 
 -- only register on Unix-like systems with lsof available
@@ -87,4 +97,5 @@ return {
   url = "https://github.com/sst/opencode",
   continue = { "--continue" },
   native_scroll = true,
+  mux_focus = true,
 }
