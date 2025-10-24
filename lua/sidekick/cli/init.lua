@@ -54,14 +54,17 @@ local function filter_opts(opts)
 end
 
 --- Select a prompt to send
----@param opts? sidekick.cli.Prompt|{cb:nil}
+---@param opts? sidekick.cli.Prompt|{cb:nil, submit?:boolean}
 ---@overload fun(cb:fun(msg?:string))
 function M.prompt(opts)
   opts = opts or {}
   opts = type(opts) == "function" and { cb = opts } or opts --[[@as sidekick.cli.Prompt]]
+  local submit = opts.submit
+  Util.debug("prompt() called with submit = " .. tostring(submit))
   opts.cb = opts.cb or function(_, text)
     if text then
-      M.send({ text = text })
+      Util.debug("prompt() callback calling M.send with submit = " .. tostring(submit))
+      M.send({ text = text, submit = submit })
     end
   end
   require("sidekick.cli.ui.prompt").select(opts)
@@ -192,6 +195,7 @@ function M.send(opts)
     Util.exit_visual_mode()
     vim.schedule(function()
       msg = state.tool:format(text)
+      Util.debug("send() formatting complete. opts.text type = " .. type(opts.text) .. ", text type = " .. type(text))
       -- Don't append \n if we're going to submit separately
       local send_msg = opts.submit and msg or (msg .. "\n")
       state.session:send(send_msg)
